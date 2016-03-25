@@ -1,8 +1,15 @@
 oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
                               check.date=TRUE,
-                              check.url=TRUE){
+                              check.url=TRUE,
+                              check.file=TRUE){
     require(rhdf5)
     require(XML)
+
+    # Create check files
+    check.url.file <- "oco-download/checked.urls"
+    check.file.file <- "oco-download/checked.files"
+    if(!file.exists(check.url.file)) file.create(check.url.file)
+    if(!file.exists(check.file.file)) file.create(check.file.file)
 
     # Set latidue bounding box
     lat.min <- 45
@@ -30,7 +37,6 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     h5.url.contents <- paste0(h5.url.base, "/contents.html")
 
     # Check if URL is already in URL list
-    check.url.file <- "oco-download/checked.urls"
     if(check.url & file.exists(check.url.file)){
         url.exists <- any(grepl(h5.url.base, readLines(check.url.file)))
         if(url.exists){
@@ -41,7 +47,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     # Add URL to check file 
     cat(paste0(h5.url.base, "\n"), file=check.url.file, append=TRUE)
 
-
+    # Scrape file list from OCO download page
     h5.raw.table <- try(readHTMLTable(h5.url.contents, stringsAsFactors=FALSE)[[1]])
     if(class(h5.raw.table) == "try-error"){
         warning("Unable to download file list. Check internet connection, or data for today may not be available.")
@@ -55,10 +61,18 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     for(h5 in h5.list){
         h5.url <- paste0(h5.url.base, "/", h5)
 
-        # TODO: Add URL to downloads list -- check against it in the future when trying files
+        # Check for file in check file. Skip if file has already been downloaded
+        if(check.file){
+            has.file <- any(grepl(h5, readLines(check.file.file)))
+            if(has.file){
+                print("File already checked. Moving on")
+                next
+            }
+        }
+        cat(paste0(h5, "\n"), file=check.file.file, append=TRUE)
 
         # Download file
-        system(paste("wget -O", local.path, h5.url))
+        download.file(h5.url, local.path, quiet=TRUE)
 
         # Get latitude and longitude
         lat <- h5read(local.path, "SoundingGeometry/sounding_latitude")
@@ -71,13 +85,18 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         } 
 
         # Get values of fluorescence and time
-        measure.list <- list(
+        measure.list <- data.frame(
+            file.name = h5,
+            file.url = h5.url,
+            measurement.lat = lat[indices],
+            measurement.lon = lon[indices],
+            measurement.time.raw = h5read(local.path, "SoundingGeometry/sounding_time_string")[indices],
             fluorescence.757 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_idp")[indices],
             fluorescence.757.unc = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_uncert_idp")[indices],
             fluorescence.771 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_idp")[indices],
             fluorescence.771.unc = h5read(local.path, "DOASFluorescence/fluorescence_radiance_771nm_uncert_idp")[indices],
             fluorescence.qual.flag = h5read(local.path, "DOASFluorescence/fluorescence_qual_flag_idp")[indices],
-            measurement.time.raw = h5read(local.path, "SoundingGeometry/sounding_time_string")[indices]
+            cos.sza = h5read(local.path, "DOASFluorescence/local_daily_avg_cos_sza_idp")[indices]
         )
 
         measure.list$measurement.time <- strptime(measure.list$measurement.time.raw, "%Y-%m-%dT%H:%M:%S", tz = "GMT")
@@ -92,6 +111,6 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
             write.table(measure.list, file = csv.path, sep=",",
                         row.names=FALSE, col.names=FALSE, append=TRUE)
         }
-        if(Return) return(measure.list)
     }
+    #if(Return) return(measure.list)
 }
