@@ -36,7 +36,10 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE, check.exists=TRUE)
         lat <- h5read(local.path, "SoundingGeometry/sounding_latitude")
         lon <- h5read(local.path, "SoundingGeometry/sounding_longitude")
         hf.coords <- c("lat" = 42.5378, "lon" = -72.1715)
-        index <- which.min((lat - hf.coords["lat"])^2 + (lon - hf.coords["lon"]))
+        wc.coords <- c("lat" = 45.8060, "lon" = -90.0798)
+        lc.coords <- c("lat" = 46.0827, "lon" = -89.9792)
+        sy.coords <- c("lat" = 46.2420, "lon" = -89.3476)
+        index <- which.min((lat - hf.coords["lat"])^2 * (lon - hf.coords["lon"])^2)
 
         # Get values of fluorescence and time
         measure.list <- list(
