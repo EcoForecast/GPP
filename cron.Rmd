@@ -1,0 +1,20 @@
+---
+title: "cron"
+output: html_document
+---
+
+(In terminal)
+create cron file by type in:
+    
+    env EDITOR=nano crontab -e
+    
+Then type in:
+
+    MAILTO=ifhsieh@bu.edu,msaif@bu.edu,ashiklom@bu.edu,ecowdery@bu.edu 
+    0 20 * * * /bin/bash /Users/yvonnehsieh/GPP/oco.download.date.all.R #auto-run code at 8pm everyday
+
+Hit ctrl+O for saving cron file, then ctrl+X for exiting crontab
+
+See "crontab:installing new crontab" means cron was properly created
+
+Reference:http://www.techradar.com/how-to/computing/apple/terminal-101-creating-cron-jobs-1305651
