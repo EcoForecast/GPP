@@ -1,0 +1,12 @@
+Willow creek:
+    Latitude -- 45.8060
+    Longitude -- -90.0798
+
+Lost creek:
+    Latitude -- 46.0827
+    Longitude -- -89.9792
+
+Sylvania:
+    Latitude -- 46.2420
+    Longitude -- -89.3476
+
