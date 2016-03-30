@@ -6,9 +6,14 @@ library(bit64)          # For reading long integers
 base.url <- "ftp://daac.ornl.gov/data/modis_ascii_subsets/C5_MOD15A2/data/"
 
 # Locate sites of interest
-# TODO: Add other locations -- Sylvania, Lost Creek
-fnames <- c("MOD15A2.fn_uswiwill.txt"           # Willow creek
-            )
+modis.site.file <- "modis-download/modis.sites.RData"
+if(file.exists(modis.site.file)){
+    load("modis-download/modis.sites.RData")
+} else {
+    source("modis-download/01-modis.get.site.info.R")
+}
+site.names <- modis.sites[, Site_ID]
+fnames <- sprintf("MOD15A2.%s.txt", site.names)
 
 # For checking if download is needed
 # Get raw directory listing
@@ -29,9 +34,7 @@ fnames <- c("MOD15A2.fn_uswiwill.txt"           # Willow creek
 modis.list <- list()
 for(fname in fnames){
     full.url <- paste0(base.url, fname)
-    full.path <- file.path("modis-download", fname)
-    modis.dl <- download.file(full.url, full.path)
-    modis.dat <- fread(full.path, header=TRUE)
+    modis.dat <- fread(full.url, header=TRUE)
     modis.list[[fname]] <- modis.dat
 }
 
