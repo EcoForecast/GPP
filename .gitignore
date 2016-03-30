@@ -3,13 +3,14 @@
 .Rapp.history
 
 # Session Data files
-.RData
+*.RData
 
 # Example code in package build process
 *-Ex.R
 
 # RStudio files
 .Rproj.user/
+*.Rproj*
 
 # produced vignettes
 vignettes/*.html
@@ -22,3 +23,4 @@ vignettes/*.pdf
 oco-download/checked.*
 oco-download/*.csv
 oco-download/*.h5
+.Rproj.user
