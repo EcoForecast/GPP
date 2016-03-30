@@ -18,3 +18,23 @@ Hit ctrl+O for saving cron file, then ctrl+X for exiting crontab
 See "crontab:installing new crontab" means cron was properly created
 
 Reference:http://www.techradar.com/how-to/computing/apple/terminal-101-creating-cron-jobs-1305651
+
+Alternatively, you can pass a text file as a cron table. Just run:
+
+    crontab <filename>
+
+For instance, I created a text file called `cron.txt` that has my cron job in it. To create a cron job from this file, I run:
+
+    crontab cron.txt
+
+To view the current cron table, run:
+
+    crontab -l
+
+To remove the current crontab, run:
+
+    crontab -r
+
+For more information about the `crontab` command, run:
+
+    man crontab
