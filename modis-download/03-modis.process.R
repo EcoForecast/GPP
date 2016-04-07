@@ -7,19 +7,67 @@ load("modis-download/modis.data.RData")
 # Source: https://lpdaac.usgs.gov/sites/default/files/public/modis/docs/MODIS-LAI-FPAR-User-Guide.pdf
 band.factors <- c("Lai_1km"=0.1, "Fpar_1km"=0.01)
 
-# Plot data for each site
-for(i in seq_along(modis.list)){
-    modis.name <- names(modis.list)[i]
-    for(b in names(band.factors)){
-        dat.full <- modis.list[[i]][Band == b]
-        dat <- as.matrix(dat.full[, as.character(1:49), with=F]) * band.factors[b]
-        # TODO: Parse the dates
-        png(paste0("figures/", modis.name, ".", b, ".png"))
-        matplot(dat, type='l', main=paste(names(modis.list)[i], b))
-        dev.off()
-    }
+sitenames <- function(name){
+  if(name == "MOD15A2.fn_uswiwill.txt"){
+    sitename <- "Willow-Creek"
+  }else if(name == "MOD15A2.fn_uslcreek.txt") {
+    sitename <- "Lost-Creek"
+  }else if(name == "MOD15A2.fn_ussylvan.txt"){
+    sitename <- "Sylvania"
+  }
 }
 
 
-# Subset MODIS file
+# Subset the data to the 3x3 grid around the center point
+M <- matrix(1:49, nrow=7, byrow = T); c = 4
+n = 3; s= floor(sqrt(n))
+subset <- as.character(array(M[(c-s):(c+s),(c-s):(c+s)]))
 
+system("mkdir -p ./figures")
+
+for(i in seq_along(modis.list)){
+  modis.name <- sitenames(names(modis.list)[i])
+  for(b in names(band.factors)){
+    dat.full <- modis.list[[i]][Band == b]
+    dat <- as.data.frame(dat.full[, subset, with=F]) * band.factors[b]
+    dat$time <- dat.full$Date
+    dat_melt <- melt(dat, id.vars = "time", measure.vars = subset, variable.factor=FALSE)
+    dat_melt$time = as.POSIXlt(substr(dat_melt$time,2,8),format="%Y%j")
+    quants <- as.data.frame(t((apply(dat[,subset],1,function(x) quantile(x,c(.025,.5,.975))))))
+    colnames(quants) <- c("low","mean","high")
+    quants$time <- as.Date( as.POSIXlt(substr(dat$time,2,8),format="%Y%j"))
+    save(dat, dat_melt, quants, file = sprintf("%s.%s.Rdata", modis.name, b))
+  }
+}
+
+
+# Example plots 
+library(ggplot2)
+library(gridExtra)
+
+b = "Fpar_1km"
+for(i in seq_along(modis.list)){
+  
+  modis.name <- sitenames(names(modis.list)[i])
+  load(sprintf("%s.%s.Rdata", modis.name, b))
+  
+  p1 <- ggplot(data=dat_melt) + 
+    geom_line(aes(x=as.Date(time), y=value, colour=variable), alpha = .7) +
+    labs(title = modis.name, y = b, x = "") +
+    scale_x_date(date_breaks = "1 years", date_minor_breaks = "2 months", date_labels = "%Y") + 
+    theme_bw() + theme(text = element_text(size=18)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+  
+  p2 <-  ggplot(quants) + 
+    geom_line(aes(y=mean, x=time, colour = "mean")) +
+    geom_ribbon(aes(ymin=low, ymax=high, x=time, fill = "95%"), alpha = 0.3)+
+    scale_colour_manual("",values="darkblue")+
+    scale_fill_manual("",values="blue") +
+    labs(y = b, x = "Time") +
+    scale_x_date(date_breaks = "1 years", date_minor_breaks = "2 months", date_labels = "%Y") +
+    theme_bw() + theme(text = element_text(size=18)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  grid.arrange(p1, p2, ncol=1)
+  
+}
