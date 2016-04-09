@@ -1,4 +1,4 @@
-modisRandomWalk <- function(time,y, n.iter=1000, diag_plot = FALSE){
+modisRandomWalk <- function(y, n.iter=1000, diag_plot = FALSE){
 
   library(rjags)
   source("modis.subsets.R")
