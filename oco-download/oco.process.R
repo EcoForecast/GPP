@@ -1,12 +1,28 @@
 library(data.table)
-library(ggplot2)
 oco.dat <- fread("fluorescence.csv", header=TRUE)
+
+# Search bounding box with specified edge size
+box.search <- function(lat, lon, target.coords, distance){
+    coords <- cbind(lat, lon)
+    cmin <- target.coords - distance
+    cmax <- target.coords + distance
+    in.box <- apply(coords, 1, function(x) all(x > cmin & x < cmax))
+    return(in.box)
+}
+
+# Subset fluorescence data by site
+coords.wcr <- c(45.8060, -90.0798)
+coords.lcr <- c(46.0827, -89.9792)
+coords.syl <- c(46.2420, -89.3476)
+
+distance <- 0.1
+wcr.sif <- oco.dat[box.search(measurement.lat, measurement.lon, coords.wcr, distance)]
+lcr.sif <- oco.dat[box.search(measurement.lat, measurement.lon, coords.lcr, distance)]
+syl.sif <- oco.dat[box.search(measurement.lat, measurement.lon, coords.syl, distance)]
+
 
 # Generate location map
 library(maps)
-coords.wcr <- rev(c(45.8060, -90.0798))     # Red
-coords.lcr <- rev(c(46.0827, -89.9792))     # Blue
-coords.syl <- rev(c(46.2420, -89.3476))     # Green
 coords <- rbind(coords.wcr, coords.lcr, coords.syl)
 oco.sites <- oco.dat[, .N, by=list(measurement.lat, measurement.lon)]
 zo <- 0.25

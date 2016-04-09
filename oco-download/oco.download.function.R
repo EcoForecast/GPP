@@ -93,7 +93,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
             measurement.time.raw = h5read(local.path, "SoundingGeometry/sounding_time_string")[indices],
             fluorescence.757 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_idp")[indices],
             fluorescence.757.unc = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_uncert_idp")[indices],
-            fluorescence.771 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_idp")[indices],
+            fluorescence.771 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_771nm_idp")[indices],
             fluorescence.771.unc = h5read(local.path, "DOASFluorescence/fluorescence_radiance_771nm_uncert_idp")[indices],
             fluorescence.qual.flag = h5read(local.path, "DOASFluorescence/fluorescence_qual_flag_idp")[indices],
             cos.sza = h5read(local.path, "DOASFluorescence/local_daily_avg_cos_sza_idp")[indices]

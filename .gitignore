@@ -26,6 +26,13 @@ oco-download/*.csv
 oco-download/*.h5
 .Rproj.user
 
+# Downloaded MODIS files
+modis-download/*.txt
+modis-download/*.RData
+
 # Figures
 *.png
 *.pdf
+
+# AWS server PEM file
+*.pem
