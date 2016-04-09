@@ -1,3 +1,6 @@
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
 library(data.table)
 library(bit64)
 
@@ -36,7 +39,7 @@ for(i in seq_along(modis.list)){
     quants <- as.data.frame(t((apply(dat[,subset],1,function(x) quantile(x,c(.025,.5,.975))))))
     colnames(quants) <- c("low","mean","high")
     quants$time <- as.Date( as.POSIXlt(substr(dat$time,2,8),format="%Y%j"))
-    save(dat, dat_melt, quants, file = sprintf("%s.%s.RData", modis.name, b))
+    save(dat, dat_melt, quants, file = sprintf("modis-downoad/%s.%s.RData", modis.name, b))
   }
 }
 
@@ -49,7 +52,7 @@ b = "Fpar_1km"
 for(i in seq_along(modis.list)){
   
   modis.name <- sitenames(names(modis.list)[i])
-  load(sprintf("%s.%s.Rdata", modis.name, b))
+  load(sprintf("modis-download/%s.%s.Rdata", modis.name, b))
   
   p1 <- ggplot(data=dat_melt) + 
     geom_line(aes(x=as.Date(time), y=value, colour=variable), alpha = .7) +

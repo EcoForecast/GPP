@@ -5,6 +5,9 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     require(rhdf5)
     require(XML)
 
+    # Make sure I'm in the project base directory
+    if(grepl("-download", getwd())) setwd("..")
+
     # Create check files
     check.url.file <- "oco-download/checked.urls"
     check.file.file <- "oco-download/checked.files"

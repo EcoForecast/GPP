@@ -56,11 +56,15 @@ process <- function(oco.dat, coords, distance=0.1){
 
 }
 
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
 # Apply processing to each site
 # wcr -- Willow Creek
 # lcr -- Lost creek
 # syl -- Sylvania
 library(data.table)
+
 oco.dat <- fread("oco-download/fluorescence.csv", header=TRUE)
 
 coords.wcr <- c(45.8060, -90.0798)
