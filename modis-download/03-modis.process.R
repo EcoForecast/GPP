@@ -23,7 +23,7 @@ M <- matrix(1:49, nrow=7, byrow = T); c = 4
 n = 3; s= floor(sqrt(n))
 subset <- as.character(array(M[(c-s):(c+s),(c-s):(c+s)]))
 
-system("mkdir -p ./figures")
+dir.create("figures")
 
 for(i in seq_along(modis.list)){
   modis.name <- sitenames(names(modis.list)[i])
@@ -36,7 +36,7 @@ for(i in seq_along(modis.list)){
     quants <- as.data.frame(t((apply(dat[,subset],1,function(x) quantile(x,c(.025,.5,.975))))))
     colnames(quants) <- c("low","mean","high")
     quants$time <- as.Date( as.POSIXlt(substr(dat$time,2,8),format="%Y%j"))
-    save(dat, dat_melt, quants, file = sprintf("%s.%s.Rdata", modis.name, b))
+    save(dat, dat_melt, quants, file = sprintf("%s.%s.RData", modis.name, b))
   }
 }
 

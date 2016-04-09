@@ -45,7 +45,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     }
 
     # Add URL to check file 
-    cat(paste0(h5.url.base, "\n"), file=check.url.file, append=TRUE)
+    write(h5.url.base, file=check.url.file, append=TRUE)
 
     # Scrape file list from OCO download page
     h5.raw.table <- try(readHTMLTable(h5.url.contents, stringsAsFactors=FALSE)[[1]])
@@ -69,7 +69,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
                 next
             }
         }
-        cat(paste0(h5, "\n"), file=check.file.file, append=TRUE)
+        write(h5, file=check.file.file, append=TRUE)
 
         # Download file
         download.file(h5.url, local.path, quiet=TRUE)
@@ -106,7 +106,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         if(Write){
             csv.path <- "oco-download/fluorescence.csv"
             if(!file.exists(csv.path)){
-                cat(c(names(measure.list), "\n"), file = csv.path, sep=",")
+                write(names(measure.list), file = csv.path, sep=",")
             }
             write.table(measure.list, file = csv.path, sep=",",
                         row.names=FALSE, col.names=FALSE, append=TRUE)
