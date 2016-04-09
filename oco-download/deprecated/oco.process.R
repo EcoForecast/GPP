@@ -1,4 +1,8 @@
 library(data.table)
+
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
 oco.dat <- fread("fluorescence.csv", header=TRUE)
 
 # Search bounding box with specified edge size
