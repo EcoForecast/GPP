@@ -1,3 +1,6 @@
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
 library(data.table)     # fread, general data manipulation
 library(bit64)          # For reading long integers
 #library(curl)          # To grab directory information
