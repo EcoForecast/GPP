@@ -1,3 +1,4 @@
 MAILTO=ifhsieh@bu.edu,msaif@bu.edu,ashiklom@bu.edu,ecowdery@bu.edu 
 0 20 * * * /bin/bash $HOME/GPP/oco.download.sh   # auto-run code at 8pm (20:00) everyday
 0 20 * * * /bin/bash $HOME/GPP/modis.download.sh   # auto-run code at 8pm (20:00) everyday
+0 20 * * * /bin/bash /home/carya/GPP/download.flux.sh   # auto-run code at 8pm (20:00) everyday
