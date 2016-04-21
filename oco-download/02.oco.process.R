@@ -78,3 +78,24 @@ lcr.sif <- process(oco.dat, coords.lcr, distance = distance)
 syl.sif <- process(oco.dat, coords.syl, distance = distance)
 
 save(wcr.sif, lcr.sif, syl.sif, file="oco-download/oco.data.RData")
+
+library(ggplot2)
+gg.plot <- ggplot() + 
+    aes(x=measurement.date, y=sif.757,
+        ymin=sif.757-sif.757.unc, ymax=sif.757+sif.757.unc) +
+    geom_line() + geom_pointrange() +
+    labs(x = "Date", y = "Sun-induced fluorescence (mW/m2/sr/nm)")
+wcr.plot <- gg.plot %+% wcr.sif + labs(title="Willow Creek")
+lcr.plot <- gg.plot %+% lcr.sif + labs(title="Lost Creek")
+syl.plot <- gg.plot %+% syl.sif + labs(title="Sylvania")
+
+dir.create("figures")
+png(file.path("figures","SIF.wcr.png"))
+plot(wcr.plot)
+dev.off()
+png(file.path("figures","SIF.lcr.png"))
+plot(lcr.plot)
+dev.off()
+png(file.path("figures","SIF.syl.png"))
+plot(syl.plot)
+dev.off()
