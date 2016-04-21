@@ -79,6 +79,7 @@ for(i in seq_along(modis.list)){
     theme_bw() + theme(text = element_text(size=18)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
+  png(file.path("figures", sprintf("MODIS.Fpar.%s.png", modis.name)))
   grid.arrange(p1, p2, ncol=1)
-  
+  dev.off()
 }
