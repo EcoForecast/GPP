@@ -2,16 +2,16 @@
 # Check functions used to save time and memory by skipping dates, URLs, or files that have already been processed.
 #' @param Date POSIXlt date required for downloading
 #' @param Write Logical -- if TRUE, write results to fluorescence.csv
-#' @param Return Logical -- if TRUE, return results (useful for interactive testing)
 #' @param check.dat Logical -- if TRUE, check if current date has already been downloaded
 #' @param check.url Logical -- if TRUE, check if URL for file list for a specific date has already been checked for new files
 #' @param check.file Logical -- if TRUE, check if specific file has already been downloaded
-oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
+oco.download.date <- function(Date, Write=TRUE,
                               check.date=TRUE,
                               check.url=TRUE,
                               check.file=TRUE){
     require(rhdf5)
     require(XML)
+    require(data.table)
 
     # Make sure I'm in the project base directory
     if(grepl("-download", getwd())) setwd("..")
@@ -35,7 +35,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     # Check if date is already in fluorescence. If it is, then skip.
     if(check.date & file.exists("oco-download/fluorescence.csv")){
         Date.simple <- as.character(as.Date(Date))
-        current.dat <- read.csv("oco-download/fluorescence.csv", stringsAsFactors = FALSE)
+        current.dat <- fread("oco-download/fluorescence.csv", header=TRUE)
         if(Date.simple %in% current.dat$measurement.date){
             return("Date exists")
         }
@@ -76,7 +76,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         if(check.file){
             has.file <- any(grepl(h5, readLines(check.file.file)))
             if(has.file){
-                print("File already checked. Moving on")
+                message("File already checked. Moving on")
                 next
             }
         }
@@ -91,7 +91,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         indices <- which(in.box(lat, lon))
 
         if(length(indices) == 0){
-            print("No coordinates in bounding box. Moving to next file")
+            message("No coordinates in bounding box. Moving to next file")
             next
         } 
 
@@ -123,7 +123,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
                         row.names=FALSE, col.names=FALSE, append=TRUE)
         }
     }
-    if(Return) return(measure.list)
+    return(NULL)
 }
 # Make sure I'm in the project base directory
 if(grepl("-download", getwd())) setwd("..")
@@ -133,7 +133,7 @@ start.date <- as.POSIXlt("2014-09-07", tz = "GMT")
 end.date <- as.POSIXlt(Sys.Date())
 Date <- end.date
 while(difftime(Date, start.date) > 0){
-    print(Date)
-    dl <- oco.download.date(Date = Date, Return=TRUE, Write=TRUE)
+    message(Date)
+    dl <- oco.download.date(Date = Date, Write=TRUE)
     Date <- as.POSIXlt(as.Date(Date) - 1)
 }
