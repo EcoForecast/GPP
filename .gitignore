@@ -36,3 +36,8 @@ modis-download/*.RData
 
 # AWS server PEM file
 *.pem
+
+# Flux download
+*.csv.gz
+*.csv
+*.zip
