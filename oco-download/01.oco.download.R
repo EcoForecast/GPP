@@ -129,7 +129,6 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
 if(grepl("-download", getwd())) setwd("..")
 
 # Download data up to latest
-source("oco-download/oco.download.function.R")
 start.date <- as.POSIXlt("2014-09-07", tz = "GMT")
 end.date <- as.POSIXlt(Sys.Date())
 Date <- end.date
