@@ -21,3 +21,4 @@ vignettes/*.pdf
 oco-download/checked.*
 oco-download/*.csv
 oco-download/*.h5
+.Rproj.user
