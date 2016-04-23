@@ -1,3 +1,6 @@
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
 # Get site information
 library(data.table)
 

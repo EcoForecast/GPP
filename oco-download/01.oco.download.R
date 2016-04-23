@@ -1,9 +1,20 @@
-oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
+# Download OCO data for a specific date
+# Check functions used to save time and memory by skipping dates, URLs, or files that have already been processed.
+#' @param Date POSIXlt date required for downloading
+#' @param Write Logical -- if TRUE, write results to fluorescence.csv
+#' @param check.dat Logical -- if TRUE, check if current date has already been downloaded
+#' @param check.url Logical -- if TRUE, check if URL for file list for a specific date has already been checked for new files
+#' @param check.file Logical -- if TRUE, check if specific file has already been downloaded
+oco.download.date <- function(Date, Write=TRUE,
                               check.date=TRUE,
                               check.url=TRUE,
                               check.file=TRUE){
     require(rhdf5)
     require(XML)
+    require(data.table)
+
+    # Make sure I'm in the project base directory
+    if(grepl("-download", getwd())) setwd("..")
 
     # Create check files
     check.url.file <- "oco-download/checked.urls"
@@ -24,7 +35,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     # Check if date is already in fluorescence. If it is, then skip.
     if(check.date & file.exists("oco-download/fluorescence.csv")){
         Date.simple <- as.character(as.Date(Date))
-        current.dat <- read.csv("oco-download/fluorescence.csv", stringsAsFactors = FALSE)
+        current.dat <- fread("oco-download/fluorescence.csv", header=TRUE)
         if(Date.simple %in% current.dat$measurement.date){
             return("Date exists")
         }
@@ -45,7 +56,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
     }
 
     # Add URL to check file 
-    cat(paste0(h5.url.base, "\n"), file=check.url.file, append=TRUE)
+    write(h5.url.base, file=check.url.file, append=TRUE)
 
     # Scrape file list from OCO download page
     h5.raw.table <- try(readHTMLTable(h5.url.contents, stringsAsFactors=FALSE)[[1]])
@@ -65,11 +76,11 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         if(check.file){
             has.file <- any(grepl(h5, readLines(check.file.file)))
             if(has.file){
-                print("File already checked. Moving on")
+                message("File already checked. Moving on")
                 next
             }
         }
-        cat(paste0(h5, "\n"), file=check.file.file, append=TRUE)
+        write(h5, file=check.file.file, append=TRUE)
 
         # Download file
         download.file(h5.url, local.path, quiet=TRUE)
@@ -80,7 +91,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         indices <- which(in.box(lat, lon))
 
         if(length(indices) == 0){
-            print("No coordinates in bounding box. Moving to next file")
+            message("No coordinates in bounding box. Moving to next file")
             next
         } 
 
@@ -93,7 +104,7 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
             measurement.time.raw = h5read(local.path, "SoundingGeometry/sounding_time_string")[indices],
             fluorescence.757 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_idp")[indices],
             fluorescence.757.unc = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_uncert_idp")[indices],
-            fluorescence.771 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_757nm_idp")[indices],
+            fluorescence.771 = h5read(local.path, "DOASFluorescence/fluorescence_radiance_771nm_idp")[indices],
             fluorescence.771.unc = h5read(local.path, "DOASFluorescence/fluorescence_radiance_771nm_uncert_idp")[indices],
             fluorescence.qual.flag = h5read(local.path, "DOASFluorescence/fluorescence_qual_flag_idp")[indices],
             cos.sza = h5read(local.path, "DOASFluorescence/local_daily_avg_cos_sza_idp")[indices]
@@ -106,11 +117,23 @@ oco.download.date <- function(Date, Write=TRUE, Return=FALSE,
         if(Write){
             csv.path <- "oco-download/fluorescence.csv"
             if(!file.exists(csv.path)){
-                cat(c(names(measure.list), "\n"), file = csv.path, sep=",")
+                write(names(measure.list), file = csv.path, sep=",")
             }
             write.table(measure.list, file = csv.path, sep=",",
                         row.names=FALSE, col.names=FALSE, append=TRUE)
         }
     }
-    #if(Return) return(measure.list)
+    return(NULL)
+}
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
+# Download data up to latest
+start.date <- as.POSIXlt("2014-09-07", tz = "GMT")
+end.date <- as.POSIXlt(Sys.Date())
+Date <- end.date
+while(difftime(Date, start.date) > 0){
+    message(Date)
+    dl <- oco.download.date(Date = Date, Write=TRUE)
+    Date <- as.POSIXlt(as.Date(Date) - 1)
 }

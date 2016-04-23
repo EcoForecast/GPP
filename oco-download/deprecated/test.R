@@ -1,6 +1,6 @@
-# Change directories if too deep. Then source function definition
-wd <- getwd()
-if(grepl("oco-download/", wd)) setwd("..")
+# Make sure I'm in the project base directory
+if(grepl("-download", getwd())) setwd("..")
+
 source("oco-download/oco.download.R")
 
 # Clear out log files

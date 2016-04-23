@@ -1,24 +1,46 @@
 # History files
 .Rhistory
 .Rapp.history
-# Rproject files
-*.Rproj*
+
 # Session Data files
-.RData
+*.RData
+
 # Example code in package build process
 *-Ex.R
+
 # RStudio files
+.Rproj.user
 .Rproj.user/
+*.Rproj*
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
-
-
 
 # Specific files in oco-download
 oco-download/checked.*
 oco-download/*.csv
 oco-download/*.h5
 .Rproj.user
+<<<<<<< HEAD
+=======
+
+# Downloaded MODIS files
+modis-download/*.txt
+modis-download/*.RData
+
+# Figures
+*.png
+*.pdf
+
+# AWS server PEM file
+*.pem
+
+# Flux download
+*.csv.gz
+*.csv
+*.zip
+>>>>>>> 33659c9b91e39e24c654cc361c2a7dd0ef33f32d
