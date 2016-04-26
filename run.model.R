@@ -12,8 +12,14 @@ wcr.sif[, time := as.Date(measurement.date)]
 # Load MODIS data
 load("modis-download/Willow-Creek.Fpar_1km.RData")
 wcr.fpar <- data.table(quants)
-wcr.fpar$par <- 150     # TODO: This is a MADE-UP value in the PAR range. Replace with real data.
+load("flux-download/par.Rdata")
+#wcr.fpar$par <- 150     # TODO: This is a MADE-UP value in the PAR range. Replace with real data.
+par.table <- data.table("time" = as.Date(date.daily[which(as.Date(date.daily) %in% quants$time)]),
+                         "par" = par.daily.sum[which(as.Date(date.daily) %in% quants$time)])
+wcr.fpar <- merge(wcr.fpar, par.table, by = "time")
 
+
+  
 # Align data based on dates
 start.date <- as.Date("2000-01-01", tz = "UTC")
 end.date <- as.Date(Sys.Date())
@@ -119,9 +125,13 @@ save(out, file="out.RData")
 # A time series of the outputs, with MODIS fPAR and OCO for comparison
 gpp.ind <- grep("gpp", colnames(out))
 ci <- t(apply(out[,gpp.ind], 2, quantile, c(0.025, 0.5, 0.975)))
+
+png(filename = "figures/model.output.png", width = 1000, height = 1100)
 par(mfrow=c(3,1), mar=c(3,3,1,1))
 xtime <- as.POSIXct(data.dt[[6]])
 matplot(x=xtime, y=ci, type='l', col=c("red", "black", "red"), lty=c(2,1,2), xaxt = 'n')
 axis.POSIXct(1, xtime, at = seq(xtime[1], xtime[length(xtime)], by="year"))
 plot(data.dt[,mu])
 plot(data.dt[,sif.757])
+dev.off()
+
