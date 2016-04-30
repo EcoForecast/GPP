@@ -1,3 +1,3 @@
 #!/bin/bash
-Rscript download.flux.R
+Rscript flux-download/download.flux.R
 

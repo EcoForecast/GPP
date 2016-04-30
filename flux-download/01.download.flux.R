@@ -1,4 +1,5 @@
 library(XML)
+library(data.table)
 flux.url="http://flux.aos.wisc.edu/data/cheas/wcreek/flux/current/"
 flux.dat=readHTMLTable(flux.url,stringsAsFactors=FALSE)[[1]]
 str(flux.dat)
