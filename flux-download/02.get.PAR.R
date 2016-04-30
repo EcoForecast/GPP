@@ -1,29 +1,35 @@
-require(ggplot2)
-require(gridExtra)
-require(lubridate)
+library(ggplot2)
+library(gridExtra)
+library(lubridate)
 
 
 load("flux-download/download.flux.RData")
-dat <- masterflux2
+dat <- data.table(masterflux2)
+rm(masterflux2)
 
+# Convert -999 to NA values
+to.na <- function(x){
+    if(is.numeric(x)) x[x < -990] <- NA
+    return(x)
+}
 
-min <- dat$hour*60
-dat$date <- as.POSIXct(paste(dat$year, dat$month, dat$day, floor(dat$hour), min %% 60  ), format = "%Y %m %j %H %M")
-par <- dat$par
+dat <- dat[, lapply(.SD, to.na)]
 
-date_grp <- sprintf("%04d%02d%02d", 
-                        year(dat$date),
-                        month(dat$date),
-                        day(dat$date))
-date.daily <- c(as.POSIXct(unique(date_grp), format = "%Y%m%j"),
-                rep(NA, length(par)-length(unique(date_grp))))
-par.daily.mean <- tapply(X = dat$par, INDEX = date_grp, 
-                            FUN = function(x) mean(x, na.rm=T))
-par.daily.max <- tapply(X = dat$par, INDEX = date_grp, 
-                          FUN = function(x) max(x, na.rm=T))
-par.daily.sum <- tapply(X = dat$par, INDEX = date_grp, 
-                          FUN = function(x) sum(x, na.rm=T))
+dat[, min := hour*60]
+dat[, datetime := as.POSIXct(paste(year, month, day, floor(hour), min %% 60), format = "%Y %m %j %H %M")]
+dat[, date := as.Date(datetime)]
 
+flux.data <- dat[, list(par.mean = mean(par, na.rm=T),
+                       par.max = max(par, na.rm=T),
+                       par.sum = sum(par, na.rm=T),
+                       tair.mean = mean(tair, na.rm=T),
+                       tair.max = max(tair, na.rm=T),
+                       preicp.sum = sum(precipitation, na.rm=T),
+                       gpp.mean = mean(gpp, na.rm=T),
+                       gpp.max = max(gpp, na.rm=T)),
+                by = date]
+
+save(flux.data, file="flux-download/flux.processed.RData")
 
 plot_dat <- as.data.frame(cbind(date, par, date.daily, 
                                 c(par.daily.mean, rep(NA, length(par)-length(unique(date_grp)))),
@@ -44,4 +50,4 @@ p4 <- p1 + geom_line(aes(x=date.daily, y=par.daily.sum), colour = col[3])
 grid.arrange(p1, p2, p3, p4, ncol = 2)
 dev.off()
 
-save(date, date.daily, par.daily.mean, par.daily.max, par.daily.sum, file = "flux-download/par.Rdata")
+save(date, date.daily, par.daily.mean, par.daily.max, par.daily.sum, file = "flux-download/par.RData")
