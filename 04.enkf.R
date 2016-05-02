@@ -1,8 +1,15 @@
-load("out.RData")
+library(data.table)
+load("model.output.RData")
 load("input.data.RData")
 
 # Get gpp from after today
-today <- as.Date(Sys.Date())
-gpp.ind <- grep("gpp", colnames(out))
+forecast.rows <- data.dt[, which(date > forecast.start.date)]
+gpp.inds <- grep("gpp", colnames(model.samples))[forecast.rows]
+
+gpp.forecast.samples <- model.samples[, gpp.inds]
+# TODO: Same thing for fPAR and SIF?
+# TODO: Update the forecast moving forward in time...
+
+#gpp.prior <-
 
 
