@@ -19,8 +19,10 @@ oco.download.date <- function(Date, Write=TRUE,
     # Create check files
     check.url.file <- "oco-download/checked.urls"
     check.file.file <- "oco-download/checked.files"
+    check.date.file <- "oco-download/checked.dates"
     if(!file.exists(check.url.file)) file.create(check.url.file)
     if(!file.exists(check.file.file)) file.create(check.file.file)
+    if(!file.exists(check.date.file)) file.create(check.date.file)
 
     # Set latidue bounding box
     lat.min <- 45
@@ -33,13 +35,14 @@ oco.download.date <- function(Date, Write=TRUE,
     }
 
     # Check if date is already in fluorescence. If it is, then skip.
-    if(check.date & file.exists("oco-download/fluorescence.csv")){
+    if(check.date){
         Date.simple <- as.character(as.Date(Date))
-        current.dat <- fread("oco-download/fluorescence.csv", header=TRUE)
-        if(Date.simple %in% current.dat$measurement.date){
+        date.exists <- any(grepl(Date.simple, readLines(check.date.file)))
+        if(date.exists){
             return("Date exists")
         }
     }
+    write(Date.simple, file=check.date.file, append = TRUE)
 
     # Get all download URLs
     doy <- Date$yday + 1            # Get day of year (need to offset by 1 for some reason)
@@ -48,7 +51,7 @@ oco.download.date <- function(Date, Write=TRUE,
     h5.url.contents <- paste0(h5.url.base, "/contents.html")
 
     # Check if URL is already in URL list
-    if(check.url & file.exists(check.url.file)){
+    if(check.url){
         url.exists <- any(grepl(h5.url.base, readLines(check.url.file)))
         if(url.exists){
             return("URL exists")
