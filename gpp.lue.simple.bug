@@ -1,0 +1,49 @@
+model{
+
+#### PROCESS MODEL ####
+
+# Simplest GPP model
+for(t in 1:ntime){
+    PAR[t] ~ dnorm(apar * doy[t]^2 + bpar * doy[t] + cpar, tau_par)
+    fpar[t] ~ dnorm(exp(fpwidth * (doy[t] - fpcenter)), tau_fpar)
+    gpp[t] ~ dnorm(fpar[t] * PAR[t] * lue + eps[t], tau_process)
+}
+
+# GPP bias and fpar is a random walk from previous timestep
+for(t in 2:ntime){
+    eps[t] ~ dnorm(eps[t-1], tau_eps)
+}
+
+#### DATA MODEL ####
+for(t in 1:ntime){
+    # Flux towers -- estimate observation error
+    gpp_flux[t] ~ dnorm(gpp[t], tau_flux)
+
+    # MODIS fpar
+    fpar_modis[t] ~ dnorm(fpar[t], tau_modis)
+
+    # SIF
+    gpp_sif[t] ~ dnorm(gpp[t], tau_sif)
+    sif[t] <- (gpp_sif[t] - b_sif) / m_sif
+    sif_oco[t] ~ dnorm(sif[t], tau_oco)
+}
+
+#### Priors
+apar ~ dnorm(0, 0.1)
+bpar ~ dnorm(0, 0.1)
+cpar ~ dnorm(0, 0.1)
+fpwidth ~ dnorm(-0.5/365, 1)
+fpcenter ~ dnorm(174, 1/(14^2))
+tau_par ~ dgamma(0.1, 0.1)
+tau_process ~ dgamma(a_process, r_process)
+lue ~ dlnorm(mu_lue, tau_lue)
+eps[1] ~ dnorm(mu_eps_ic, tau_eps_ic)
+tau_eps ~ dgamma(a_eps, r_eps)
+tau_fpar ~ dgamma(a_fpar, r_fpar)
+tau_flux ~ dgamma(a_flux, r_flux)
+tau_modis ~ dgamma(a_modis, r_modis)
+tau_sif ~ dgamma(a_sif, r_sif)
+m_sif ~ dnorm(mu_m_sif, tau_m_sif)
+b_sif ~ dnorm(mu_b_sif, tau_b_sif)
+tau_oco ~ dgamma(a_oco, r_oco)
+}

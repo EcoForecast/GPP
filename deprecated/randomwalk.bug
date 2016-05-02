@@ -1,0 +1,36 @@
+model{
+
+#### Process Model
+for(i in 2:ntime){
+    gpp[i] ~ dnorm(gpp[i-1], tau_process)
+}
+
+#### Data Model
+for(j in 1:n_has_flux){
+    gpp_flux[has_flux[j]] ~ dnorm(gpp[has_flux[j]], tau_flux)
+}
+
+for(j in 1:n_has_modis){
+    gpp_fpar[has_modis[j]] ~ dnorm(gpp[has_modis[j]], tau_fpar)
+    fpar[has_modis[j]] <- gpp[has_modis[j]] / (PAR[has_modis[j]] * lue)
+    fpar_modis[has_modis[j]] ~ dbeta(modis_alpha[has_modis[j]], modis_beta[has_modis[j]])
+}
+
+for(j in 1:n_has_sif){
+    gpp_sif[has_sif[j]] ~ dnorm(gpp[has_sif[j]], tau_sif)
+    sif[has_sif[j]] <- (gpp[has_sif[j]] - b_sif) / m_sif
+    sif_oco[has_sif[j]] ~ dnorm(sif[has_sif[j]], tau_oco[has_sif[j]])
+}
+
+
+#### Priors
+gpp[1] ~ dnorm(mu_ic,tau_ic)
+lue ~ dlnorm(mu_lue, tau_lue)
+tau_fpar ~ dgamma(a_fpar, r_fpar)
+m_sif ~ dnorm(mu_m_sif, tau_m_sif)
+b_sif ~ dnorm(mu_b_sif, tau_b_sif)
+tau_sif ~ dgamma(a_sif, r_sif)
+tau_process ~ dgamma(a_process, r_process)
+tau_flux ~ dgamma(a_flux, r_flux)
+
+}

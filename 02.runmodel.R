@@ -1,0 +1,88 @@
+suppressMessages({
+    library(rjags)
+    library(data.table)
+})
+
+load("input.data.RData")
+source("stats.helpers.R")
+
+zero <- 1e-5
+data.dt[stdev <= 0, mu := NA]
+data.dt[mu < zero, mu := zero]
+
+# Remove data to give us something to forecast
+data.cols <- c("mu", "par.mean", "gpp.mean", "sif.757")
+forecast.start.date <- as.Date("2016-03-28")
+data.dt[date > forecast.start.date, (data.cols) := NA]
+
+data <- list(ntime = nrow(data.dt),
+             doy = data.dt[,doy],
+             # MODIS data
+             fpar_modis = data.dt$mu,
+             # Flux data
+             PAR = data.dt$par.mean,
+             gpp_flux = data.dt$gpp.mean,
+             # OCO data
+             sif_oco = data.dt$sif.757,
+             # Priors
+             a_process = 0.1, r_process = 0.1,
+             mu_lue = logmu(0.02, 0.01), tau_lue = logtau(0.02, 0.01), # FROM DATA -- double-dipped
+             mu_eps_ic = 0, tau_eps_ic = 0.1,
+             a_eps = 0.1, r_eps = 0.1,          # Uninformative priors
+             a_fpar = 0.1, r_fpar = 0.1,        # Uninformative priors
+             a_sif = 0.1, r_sif = 0.1,          # Uninformative priors
+             a_flux = 0.1, r_flux = 0.1,
+             a_modis = 0.1, r_modis = 0.1,
+             mu_m_sif = 11.82, tau_m_sif = 1/3^2,    # Means from Yang et al. 2015 GRL
+             mu_b_sif = 1.19, tau_b_sif = 1/0.5^2,   # SD's are guesses for loosely-informative priors
+             a_oco = 0.1, r_oco=0.1)
+
+# Read MCMC configuration from the command line (or default to short run)
+arg <- as.numeric(commandArgs(trailingOnly = TRUE))
+if(length(arg) == 3){
+    nchain <- arg[1]
+    n.iter <- arg[2]
+    burnin <- arg[3]
+} else {
+    nchain <- 1
+    n.iter <- 5000
+    burnin <- 10000
+}
+
+init <- list()
+gpp.comp <- data$gpp[!is.na(data$gpp)]
+for(i in 1:nchain){
+    init[[i]] <- list(gpp = sample(gpp.comp,data$ntime,replace=TRUE))
+}
+
+print("Compiling JAGS model...")
+j.model <- jags.model(file = "gpp.lue.simple.bug",
+                      data = data,
+                      inits = init,
+                      n.chains = nchain)
+
+print("Updating JAGS model (burnin)...")
+n.update <- 20
+for(i in 1:n.update){
+    print(sprintf("[%d%%]", i*100/n.update))
+    update(j.model, n.iter = round(burnin/n.update))
+}
+
+vars <- c("PAR", "apar", "bpar", "cpar", "tau_par",
+          "fpar", "fpwidth", "fpcenter", "tau_fpar",
+          "tau_modis", "tau_flux",
+          "gpp", "lue", "tau_process", "eps", "tau_eps",
+          "m_sif", "b_sif", "tau_sif", "tau_oco")
+print("Sampling JAGS model...")
+jags.out <- coda.samples(model = j.model,
+                         variable.names = vars,
+                         n.iter = n.iter,
+                         thin = 50)
+
+print("Done! Saving output...")
+model.samples <- as.matrix(jags.out)
+input.data <- data.dt
+save(model.samples, input.data, forecast.start.date,
+     file="model.output.RData")
+print("Done!")
+

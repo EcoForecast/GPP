@@ -1,0 +1,56 @@
+model{
+
+#### PROCESS MODEL ####
+
+# Simplest GPP model
+for(t in 1:ntime){
+    gpp[t] ~ dnorm(fpar[t] * PAR[t] * lue + eps[t], tau_process)
+}
+
+# GPP bias is a random walk from previous timestep
+for(t in 2:ntime){
+    eps[t] ~ dnorm(eps[t-1], tau_eps)
+    #fpar[t] ~ dnorm(fpar[t-1], tau_fpar)
+}
+
+#### DATA MODEL ####
+
+# Flux towers -- just observation error
+for(j in 1:n_has_flux){
+    gpp_flux[has_flux[j]] ~ dnorm(gpp[has_flux[j]], tau_flux)
+}
+
+# MODIS fPAR
+for(j in 1:n_has_modis){
+    #fpar[has_modis[j]] ~ dbeta(modis_alpha[has_modis[j]], modis_beta[has_modis[j]])
+    fpar[has_modis[j]] ~ dnorm(modis_mu[has_modis[j]], 1/modis_sd[has_modis[j]]^2)
+}
+for(j in 1:n_no_modis){
+    # fpprev[j] <- fpar[no_modis[j] -1]
+    # secterm[j] <- (fpprev[j] * (1 - fpprev[j]) / tau_fpar^2 - 1)
+    # alpha[j] <- fpprev[j] * secterm[j]
+    # beta[j] <- (1 - fpprev[j]) * secterm[j]
+    fpar[no_modis[j]] ~ dnorm(fpar[no_modis[j]-1], 1) T(0,1)
+}
+
+# SIF from OCO-2
+for(j in 1:n_has_sif){
+    gpp_sif[has_sif[j]] ~ dnorm(gpp[has_sif[j]], tau_sif)
+    sif[has_sif[j]] <- (gpp_sif[has_sif[j]] - b_sif) / m_sif
+    sif_oco[has_sif[j]] ~ dnorm(sif[has_sif[j]], tau_oco[has_sif[j]])
+}
+
+
+#### Priors
+lue ~ dlnorm(mu_lue, tau_lue)
+eps[1] ~ dnorm(mu_eps_ic, tau_eps_ic)
+tau_eps ~ dgamma(a_eps, r_eps)
+fpar[1] ~ dbeta(a_fpar_ic, b_fpar_ic)
+tau_fpar ~ dgamma(a_fpar, r_fpar)
+m_sif ~ dnorm(mu_m_sif, tau_m_sif)
+b_sif ~ dnorm(mu_b_sif, tau_b_sif)
+tau_sif ~ dgamma(a_sif, r_sif)
+tau_flux ~ dgamma(a_flux, r_flux)
+tau_process ~ dgamma(a_process, r_process)
+
+}
