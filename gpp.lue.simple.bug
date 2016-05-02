@@ -4,15 +4,14 @@ model{
 
 # Simplest GPP model
 for(t in 1:ntime){
+    PAR[t] ~ dnorm(apar * doy[t]^2 + bpar * doy[t] + cpar, tau_par)
+    fpar[t] ~ dnorm(exp(fpwidth * (doy[t] - fpcenter)), tau_fpar)
     gpp[t] ~ dnorm(fpar[t] * PAR[t] * lue + eps[t], tau_process)
 }
 
 # GPP bias and fpar is a random walk from previous timestep
 for(t in 2:ntime){
     eps[t] ~ dnorm(eps[t-1], tau_eps)
-    fpar[t] ~ dnorm(fpar[t-1], tau_fpar)
-#    fpar[t] <- unlogit(fpar_log[t])
-#    fpar_log[t] ~ dnorm(fpar_log[t-1], tau_fpar)
 }
 
 #### DATA MODEL ####
@@ -30,11 +29,16 @@ for(t in 1:ntime){
 }
 
 #### Priors
+apar ~ dnorm(0, 0.1)
+bpar ~ dnorm(0, 0.1)
+cpar ~ dnorm(0, 0.1)
+fpwidth ~ dnorm(-0.5/365, 1)
+fpcenter ~ dnorm(174, 1/(14^2))
+tau_par ~ dgamma(0.1, 0.1)
 tau_process ~ dgamma(a_process, r_process)
 lue ~ dlnorm(mu_lue, tau_lue)
 eps[1] ~ dnorm(mu_eps_ic, tau_eps_ic)
 tau_eps ~ dgamma(a_eps, r_eps)
-fpar[1] ~ dbeta(a_fpar_ic, b_fpar_ic)
 tau_fpar ~ dgamma(a_fpar, r_fpar)
 tau_flux ~ dgamma(a_flux, r_flux)
 tau_modis ~ dgamma(a_modis, r_modis)
