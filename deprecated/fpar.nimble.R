@@ -59,7 +59,8 @@ registerDistributions(list(
 fparmodel <- nimbleModel(fparmodel.code, constants = consts, check=FALSE,
                          name = "fparmodel")
 
-fparMCMC <- buildMCMC(fparmodel)
+fparMCMC.conf <- configureMCMC(fparmodel)
+fparMCMC <- buildMCMC(fparMCMC.conf)
 cfparMCMC <- compileNimble(fparMCMC)
 cfparMCMC$run(100)
 

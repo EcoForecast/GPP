@@ -7,6 +7,7 @@ load("input.data.RData")
 source("stats.helpers.R")
 
 data.dt[stdev <= 0, mu := NA]
+data.dt[mu < 1e-3, mu := 1e-3]
 has_modis <- data.dt[, which(!is.na(mu))]
 has_sif <- data.dt[, which(!is.na(sif.757))]
 has_flux <- data.dt[, which(!is.na(gpp.mean))]
@@ -22,8 +23,10 @@ data <- list(ntime = nrow(data.dt),
              has_flux = has_flux,
              n_has_flux = length(has_flux),
              # MODIS data
-             modis_alpha = data.dt$modis_alpha,
-             modis_beta = data.dt$modis_beta,
+             #modis_alpha = data.dt$modis_alpha,
+             #modis_beta = data.dt$modis_beta,
+             modis_mu = data.dt$mu,
+             modis_sd = data.dt$stdev,
              # Flux data
              PAR = data.dt$par.mean,
              gpp_flux = data.dt$gpp.mean,
@@ -71,6 +74,7 @@ save(out, file="out.RData")
 gpp.ind <- grep("gpp", colnames(out))
 ci <- t(apply(out[,gpp.ind], 2, quantile, c(0.025, 0.5, 0.975)))
 matplot(ci, type='l', col=c(2,1,2), lty=c(2,1,2))
+abline(v=seq(1,length(gpp.ind), by=365))
 
 #png(filename = "figures/model.output.png", width = 1000, height = 1100)
 #par(mfrow=c(3,1), mar=c(3,3,1,1))
