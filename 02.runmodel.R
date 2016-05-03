@@ -12,7 +12,7 @@ data.dt[mu < zero, mu := zero]
 
 # Remove data to give us something to forecast
 data.cols <- c("mu", "par.mean", "gpp.mean", "sif.757")
-forecast.start.date <- as.Date("2016-03-28")
+forecast.start.date <- as.Date("2016-01-01")
 data.dt[date > forecast.start.date, (data.cols) := NA]
 
 data <- list(ntime = nrow(data.dt),
