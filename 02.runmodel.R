@@ -25,7 +25,6 @@ data <- list(ntime = nrow(data.dt),
              # OCO data
              sif_oco = data.dt$sif.757,
              # Priors
-             a_process = 0.1, r_process = 0.1,
              mu_lue = logmu(0.02, 0.01), tau_lue = logtau(0.02, 0.01), # FROM DATA -- double-dipped
              mu_eps_ic = 0, tau_eps_ic = 0.1,
              a_eps = 0.1, r_eps = 0.1,          # Uninformative priors
@@ -50,9 +49,13 @@ if(length(arg) == 3){
 }
 
 init <- list()
-gpp.comp <- data$gpp[!is.na(data$gpp)]
+gpp.comp <- data$gpp_flux[!is.na(data$gpp_flux)]
+fpar.comp <- data$fpar_modis[!is.na(data$fpar_modis)]
+par.comp <- data$PAR[!is.na(data$PAR)]
+nt <- data$ntime
 for(i in 1:nchain){
-    init[[i]] <- list(gpp = sample(gpp.comp,data$ntime,replace=TRUE))
+    init[[i]] <- list(gpp = sample(gpp.comp, nt, replace=TRUE),
+                      fpar = sample(fpar.comp, nt, replace=TRUE))
 }
 
 print("Compiling JAGS model...")
@@ -71,13 +74,13 @@ for(i in 1:n.update){
 vars <- c("PAR", "apar", "bpar", "cpar", "tau_par",
           "fpar", "fpwidth", "fpcenter", "tau_fpar",
           "tau_modis", "tau_flux",
-          "gpp", "lue", "tau_process", "eps", "tau_eps",
-          "m_sif", "b_sif", "tau_sif", "tau_oco")
+          "gpp", "lue", "eps", "tau_eps",
+          "gpp_sif", "sif", "m_sif", "b_sif", "tau_sif", "tau_oco")
 print("Sampling JAGS model...")
 jags.out <- coda.samples(model = j.model,
                          variable.names = vars,
                          n.iter = n.iter,
-                         thin = 50)
+                         thin = 5)
 
 print("Done! Saving output...")
 model.samples <- as.matrix(jags.out)
