@@ -2,15 +2,17 @@ library(data.table)
 load("model.output.RData")
 load("input.data.RData")
 
+start.date <- as.Date("2016-03-28")
+
 forecast.rows <- data.dt[, which(date >= forecast.start.date)]
 gpp.new <- rep(NA, nrow(data.dt))
 
 #' This is is just updating the forecast with the observed data
 #' no forecasting forward
 
- 
-for(t in forecast.rows){ 
 
+for(t in forecast.rows){ 
+  
   ##############################
   # Observations 
   
@@ -25,38 +27,35 @@ for(t in forecast.rows){
   
   ##############################
   # Model output 
-  model <- data.table(
-  gpp = model.samples[, grep("gpp", colnames(model.samples))[t]],
-  fpar = model.samples[, grep("fpar", colnames(model.samples))[t]],
-  par = model.samples[, grep("PAR", colnames(model.samples))[t]],
-  eps = model.samples[, grep("eps", colnames(model.samples))[t]],
   
-  lue = model.samples[, grep("lue", colnames(model.samples))],
-  m.sif = model.samples[, grep("m_sif", colnames(model.samples))],
-  b.sif = model.samples[, grep("b_sif", colnames(model.samples))],
+  vars1 <- c("gpp","fpar","PAR","eps")
+  vars2 <- list("lue","m_sif","b_sif","tau_process","tau_sif","tau_modis","tau_flux")
   
-  tau.process =  model.samples[, grep("tau_process", colnames(model.samples))],
-  tau.sif = model.samples[, grep("tau_sif", colnames(model.samples))],
-  tau.modis = model.samples[, grep("tau_modis", colnames(model.samples))],
-  tau.flux = model.samples[, grep("tau_flux", colnames(model.samples))]
-  )
+  model <- data.table(n = 1:1000)
   
-  means <- model[, lapply(.SD, mean)]
+  for(v in vars1){
+    model[,(v) := model.samples[, grep(v, colnames(model.samples))[t]]]
+  }
+  for(v in vars2){
+    model[,(v) := model.samples[, grep(v, colnames(model.samples))]]
+  }
 
+  means <- model[, lapply(.SD, mean)]
+  
   ###############
   f.gpp.sif <- ifelse(!is.na(o.sif), 
-                      (means[,m.sif] * o.sif + means[,b.sif]) * means[,tau.sif], NA)
+                      (means[,m_sif] * o.sif + means[,b._sif]) * means[,tau_sif], NA)
   f.gpp.modis <- ifelse(!is.na(o.fpar.modis),
-                        (o.fpar.modis * means[,par] * means[,lue] + means[,eps]) * means[,tau.modis], NA)
+                        (o.fpar.modis * means[,par] * means[,lue] + means[,eps]) * means[,tau_modis], NA)
   f.gpp.flux <- ifelse(!is.na(o.gpp.flux),
                        o.gpp.flux * o.gpp.flux.tau, NA)
-  f.gpp.model <- means[,gpp] * means[,tau.process]
+  f.gpp.model <- means[,gpp] * means[,tau_process]
   
   sum_numer <- sum(c(f.gpp.model, f.gpp.sif, f.gpp.modis, f.gpp.flux),na.rm=T)
-  sum_denom <- sum(c(means[,tau.process], 
-                   ifelse(!is.na(f.gpp.sif),means[,tau.sif],NA),
-                   ifelse(!is.na(f.gpp.modis),means[,tau.modis],NA),
-                   ifelse(!is.na(f.gpp.flux),means[,tau.flux],NA)),na.rm = T)
+  sum_denom <- sum(c(means[,tau_process], 
+                     ifelse(!is.na(f.gpp.sif),means[,tau_sif],NA),
+                     ifelse(!is.na(f.gpp.modis),means[,tau_modis],NA),
+                     ifelse(!is.na(f.gpp.flux),means[,tau_flux],NA)),na.rm = T)
   # Weighted sum 
   gpp.new[t] <- sum_numer/sum_denom
   cat("*")
