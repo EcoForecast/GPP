@@ -73,7 +73,7 @@ for(i in 1:n.update){
 
 vars <- c("PAR", "apar", "bpar", "cpar", "tau_par",
           "fpar", "fpwidth", "fpcenter", "tau_fpar",
-          "tau_modis", "tau_flux",
+          "tau_modis", "tau_flux", "tau_process",
           "gpp", "lue", "eps", "tau_eps",
           "gpp_sif", "sif", "m_sif", "b_sif", "tau_sif", "tau_oco")
 print("Sampling JAGS model...")

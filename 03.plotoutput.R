@@ -24,7 +24,7 @@ plot.ci <- function(v, xlim=NULL, ylim=NULL){
 
 arg <- commandArgs(trailingOnly = TRUE)
 if(length(arg) > 1) png(filename = "figures/model.ts.png")
-par(mfrow=c(length(ts.vars),1))
+par(mfrow=c(length(ts.vars),1), mar=c(2, 2, 1, 1))
 for(v in ts.vars) plot.ci(v, xlim=c(0, 6000))
 if(length(arg) > 1) dev.off()
 
