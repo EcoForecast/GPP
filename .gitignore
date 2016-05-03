@@ -25,6 +25,8 @@ oco-download/checked.*
 oco-download/*.csv
 oco-download/*.h5
 .Rproj.user
+<<<<<<< HEAD
+=======
 
 # Downloaded MODIS files
 modis-download/*.txt
@@ -41,3 +43,4 @@ modis-download/*.RData
 *.csv.gz
 *.csv
 *.zip
+>>>>>>> 33659c9b91e39e24c654cc361c2a7dd0ef33f32d
