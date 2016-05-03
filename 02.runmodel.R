@@ -43,9 +43,9 @@ if(length(arg) == 3){
     n.iter <- arg[2]
     burnin <- arg[3]
 } else {
-    nchain <- 1
-    n.iter <- 5000
-    burnin <- 10000
+    nchain <- 5
+    n.iter <- 15000
+    burnin <- 2000
 }
 
 init <- list()
@@ -71,11 +71,14 @@ for(i in 1:n.update){
     update(j.model, n.iter = round(burnin/n.update))
 }
 
-vars <- c("PAR", "apar", "bpar", "cpar", "tau_par",
-          "fpar", "fpwidth", "fpcenter", "tau_fpar",
-          "tau_modis", "tau_flux", "tau_process",
-          "gpp", "lue", "eps", "tau_eps",
-          "gpp_sif", "sif", "m_sif", "b_sif", "tau_sif", "tau_oco")
+states <- c("gpp","fpar")#,"PAR","sif", "eps")
+params <- c("lue","m_sif","b_sif","tau_process","tau_sif","tau_modis","tau_flux")
+vars <- c(states, params)
+#vars <- c("PAR", "apar", "bpar", "cpar", "tau_par",
+          #"fpar", "fpwidth", "fpcenter", "tau_fpar",
+          #"tau_modis", "tau_flux", "tau_process",
+          #"gpp", "lue", "eps", "tau_eps",
+          #"gpp_sif", "sif", "m_sif", "b_sif", "tau_sif", "tau_oco")
 print("Sampling JAGS model...")
 jags.out <- coda.samples(model = j.model,
                          variable.names = vars,
@@ -85,7 +88,7 @@ jags.out <- coda.samples(model = j.model,
 print("Done! Saving output...")
 model.samples <- as.matrix(jags.out)
 input.data <- data.dt
-save(model.samples, input.data, forecast.start.date,
+save(model.samples, input.data, forecast.start.date, states, params,
      file="model.output.RData")
 print("Done!")
 
