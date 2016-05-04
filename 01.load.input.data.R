@@ -45,5 +45,5 @@ data.dt <- data.dt[, lapply(.SD, nan2na)]
 # Get day of year
 data.dt[, doy := as.numeric(strftime(date, "%j"))]
 
-save(data.dt, file="input.data.RData")
+save(data.dt, file="Rdata/input.data.RData")
 

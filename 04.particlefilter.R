@@ -1,9 +1,9 @@
 library(data.table)
 library(ggplot2)
-load("current.forecast.RData")
-load("input.data.RData")
-load("aux.model.data.RData")
-source("particlefilter.functions.R")
+load("Rdata/current.forecast.RData")
+load("Rdata/input.data.RData")
+load("Rdata/aux.model.data.RData")
+source("Rdata/particlefilter.functions.R")
 
 today <- as.Date(Sys.Date())
 forecast.rows <- data.dt[, which(date >= forecast.start.date)]
