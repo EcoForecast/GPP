@@ -1,5 +1,5 @@
-load("model.output.RData")
-load("aux.model.data.RData")
+load("Rdata/model.output.RData")
+load("Rdata/aux.model.data.RData")
 
 ciEnvelope <- function(x,ylo,yhi,...){
   polygon(cbind(c(x, rev(x), x[1]), c(ylo, rev(yhi),
@@ -8,30 +8,43 @@ ciEnvelope <- function(x,ylo,yhi,...){
 
 # Time series of the outputs
 
-plot.ci <- function(v, xlim=NULL, ylim=NULL){
-    ind <- grep(v, colnames(model.samples))
-# Something weird in last fpar timestep
-    ind <- ind[-length(ind)]
-    ci <- t(apply(model.samples[,ind], 2, quantile, c(0.025, 0.5, 0.975)))
-    x <- 1:nrow(ci)
-    if(is.null(xlim)) xlim = range(x)
-    if(is.null(ylim)) ylim = range(ci)
-    plot(0, 1, type='n', xlim=xlim, ylim=ylim,
-         xlab="Day", ylab=v, main=paste("Model output:", v))
-    ciEnvelope(x, ci[,1], ci[,3], col="lightblue")
-    lines(x, ci[,2])
+plot.ci <- function(v, model.samples,data.dt){
+  
+  quants <- c(0.025, 0.5, 0.975)
+  ind <- grep(v, colnames(model.samples))
+  # Something weird in last fpar timestep
+  ind <- ind[-length(ind)]
+  model <- model.samples[,ind]
+  out.model <- as.data.table(t(apply(model,2,quantile,quants)))
+  colnames(out.model) <- c("low.model","med.model","high.model")
+  x <- 1:nrow(out.model)
+  date <- data.dt[,date]
+  out.model <- cbind(out.model, x , "date"= date[1:length(ind)])
+  
+  p <- ggplot(out.model) + aes(x=date) +
+    geom_ribbon(aes(ymin=low.model, ymax=high.model), fill="blue", alpha=0.3) +
+    geom_line(aes(y=med.model), size=1, color="darkblue") +
+    labs(y = v, x = "Time")+
+    scale_x_date(date_breaks = "1 years", date_minor_breaks = "1 months", date_labels = "%Y") +
+    theme_bw() + theme(text = element_text(size=18)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  return(p)
 }
 
 arg <- commandArgs(trailingOnly = TRUE)
-if(length(arg) > 1) png(filename = "figures/model.ts.png")
-par(mfrow=c(length(states),1), mar=c(2, 2, 1, 1))
-for(v in states) plot.ci(v, xlim=c(0, 6000))
-if(length(arg) > 1) dev.off()
+
+for(v in states){
+  p <- plot.ci(v, model.samples,data.dt)
+  if(length(arg) > 1) png(filename = sprintf("figures/model.ts.%s.png",v), width = 900,200)
+  plot(p)
+  if(length(arg) > 1) dev.off()
+}
+
 
 # Density plots for parameters
 
-if(length(arg) > 1) png(filename = "figures/model.params.png")
-par(mfrow=c(4,4))
+if(length(arg) > 1) png(filename = "figures/model.params.png", width = 900,height = 500)
+par(mfrow=c(2,4))
 for(v in params) plot(density(model.samples[,v]), main=v)
 if(length(arg) > 1) dev.off()
 
