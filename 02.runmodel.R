@@ -12,6 +12,9 @@ data.dt[mu < zero, mu := zero]
 
 # Remove data to give us something to forecast
 data.cols <- c("mu", "par.mean", "gpp.mean", "sif.757")
+
+# If there's a command line argument
+
 forecast.start.date <- as.Date("2016-01-01")
 data.dt[date > forecast.start.date, (data.cols) := NA]
 
@@ -36,17 +39,10 @@ data <- list(ntime = nrow(data.dt),
              mu_b_sif = 1.19, tau_b_sif = 1/0.5^2,   # SD's are guesses for loosely-informative priors
              a_oco = 0.1, r_oco=0.1)
 
-# Read MCMC configuration from the command line (or default to short run)
-arg <- as.numeric(commandArgs(trailingOnly = TRUE))
-if(length(arg) == 3){
-    nchain <- arg[1]
-    n.iter <- arg[2]
-    burnin <- arg[3]
-} else {
-    nchain <- 5
-    n.iter <- 15000
-    burnin <- 2000
-}
+# MCMC configuration 
+nchain <- 5
+n.iter <- 15000
+burnin <- 2000
 
 init <- list()
 gpp.comp <- data$gpp_flux[!is.na(data$gpp_flux)]
@@ -74,11 +70,6 @@ for(i in 1:n.update){
 states <- c("gpp","fpar")#,"PAR","sif", "eps")
 params <- c("lue","m_sif","b_sif","tau_process","tau_sif","tau_modis","tau_flux")
 vars <- c(states, params)
-#vars <- c("PAR", "apar", "bpar", "cpar", "tau_par",
-          #"fpar", "fpwidth", "fpcenter", "tau_fpar",
-          #"tau_modis", "tau_flux", "tau_process",
-          #"gpp", "lue", "eps", "tau_eps",
-          #"gpp_sif", "sif", "m_sif", "b_sif", "tau_sif", "tau_oco")
 print("Sampling JAGS model...")
 jags.out <- coda.samples(model = j.model,
                          variable.names = vars,
@@ -88,7 +79,8 @@ jags.out <- coda.samples(model = j.model,
 print("Done! Saving output...")
 model.samples <- as.matrix(jags.out)
 input.data <- data.dt
-save(model.samples, input.data, forecast.start.date, states, params,
-     file="model.output.RData")
+save(forecast.start.date, states, params, input.data,
+     file = "aux.model.data.RData")
+save(model.samples, file="model.output.RData")
 print("Done!")
 
