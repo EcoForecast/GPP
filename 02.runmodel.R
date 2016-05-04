@@ -40,7 +40,7 @@ data <- list(ntime = nrow(data.dt),
              a_oco = 0.1, r_oco=0.1)
 
 # MCMC configuration 
-nchain <- 10
+nchain <- 5
 n.iter <- 15000
 burnin <- 2000
 
@@ -81,7 +81,7 @@ model.samples <- as.matrix(jags.out)
 input.data <- data.dt
 
 fname <- "Rdata/aux.model.data.RData"
-save(forecast.start.date, states, params, input.data,file = fname)
+save(forecast.start.date, states, params, file = fname)
 sprintf("File %s successfully saved = %s",fname, as.character(basename(fname) %in% dir("Rdata")))
 
 fname <- "Rdata/model.output.RData"

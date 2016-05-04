@@ -1,10 +1,6 @@
 load("Rdata/model.output.RData")
 load("Rdata/aux.model.data.RData")
-
-ciEnvelope <- function(x,ylo,yhi,...){
-  polygon(cbind(c(x, rev(x), x[1]), c(ylo, rev(yhi),
-                                      ylo[1])), border = NA,...) 
-}
+require(ggplot2)
 
 # Time series of the outputs
 
@@ -31,20 +27,18 @@ plot.ci <- function(v, model.samples,data.dt){
   return(p)
 }
 
-arg <- commandArgs(trailingOnly = TRUE)
-
 for(v in states){
   p <- plot.ci(v, model.samples,data.dt)
-  if(length(arg) > 1) png(filename = sprintf("figures/model.ts.%s.png",v), width = 900,200)
+  png(filename = sprintf("figures/model.ts.%s.png",v), width = 900,200)
   plot(p)
-  if(length(arg) > 1) dev.off()
+  dev.off()
 }
 
 
 # Density plots for parameters
 
-if(length(arg) > 1) png(filename = "figures/model.params.png", width = 900,height = 500)
+png(filename = "figures/model.params.png", width = 900,height = 500)
 par(mfrow=c(2,4))
 for(v in params) plot(density(model.samples[,v]), main=v)
-if(length(arg) > 1) dev.off()
+dev.off()
 
