@@ -88,7 +88,8 @@ jags.out <- coda.samples(model = j.model,
 print("Done! Saving output...")
 model.samples <- as.matrix(jags.out)
 input.data <- data.dt
-save(model.samples, input.data, forecast.start.date, states, params,
-     file="model.output.RData")
+save(forecast.start.date, states, params, input.data,
+     file = "aux.model.data.RData")
+save(model.samples, file="model.output.RData")
 print("Done!")
 

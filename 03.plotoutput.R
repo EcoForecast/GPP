@@ -1,4 +1,5 @@
 load("model.output.RData")
+load("aux.model.data.RData")
 
 ciEnvelope <- function(x,ylo,yhi,...){
   polygon(cbind(c(x, rev(x), x[1]), c(ylo, rev(yhi),
