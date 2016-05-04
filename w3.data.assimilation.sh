@@ -1,2 +1,2 @@
 #!/bin/bash
-Rscript 04.enkf.R
+Rscript 04.particlefilter.R
