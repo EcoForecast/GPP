@@ -1,3 +1,10 @@
+gpp.function <- function(doy, eps, params){
+    PAR <- params$apar * doy^2 + params$bpar * doy + params$cpar
+    fpar <- exp(params$fpwidth * (doy - params$fpcenter)^2)
+    gpp <- fpar * PAR * params$lue + eps
+    return(gpp)
+}
+
 particlefilter <- function(t, model.keep){
     print(t)
     # MODIS data
@@ -35,18 +42,11 @@ particlefilter <- function(t, model.keep){
     } else {
         like.fpar <- rep(1, nmod)
     }
-        #ind.fpar <- sample.int(nmod, nmod, replace=TRUE, prob=like.fpar)
-        #o.fpar.modis.unc <- o.fpar.modis * q99 * 1/sqrt(means[,tau_modis])
-        #output <- output[fpar >= min(o.fpar.modis.unc)
-                         #][fpar <= max(o.fpar.modis.unc)]
     if(!is.na(o.gpp.flux)){
         like.gpp <- dnorm(output[,gpp], o.gpp.flux, output[,tau_flux])
     } else {
         like.gpp <- rep(1, nmod)
     }
-        #o.gpp.flux.unc <- o.gpp.flux * q99 * 1/sqrt(means[,tau_flux])
-        #output <- output[gpp >= min(o.gpp.flux.unc)
-                         #][gpp <= max(o.gpp.flux.unc)]
     index <- sample.int(nmod, nmod, replace=TRUE, prob=like.fpar*like.gpp)
     model.keep <- model.keep[index,]
     # Pseudocode for resampling
