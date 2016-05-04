@@ -3,7 +3,7 @@ suppressMessages({
     library(data.table)
 })
 
-load("input.data.RData")
+load("Rdata/input.data.RData")
 source("stats.helpers.R")
 
 zero <- 1e-5
@@ -15,7 +15,7 @@ data.cols <- c("mu", "par.mean", "gpp.mean", "sif.757")
 
 # If there's a command line argument
 
-forecast.start.date <- as.Date("2016-01-01")
+forecast.start.date <- as.Date("2016-03-27")
 data.dt[date > forecast.start.date, (data.cols) := NA]
 
 data <- list(ntime = nrow(data.dt),
@@ -40,7 +40,7 @@ data <- list(ntime = nrow(data.dt),
              a_oco = 0.1, r_oco=0.1)
 
 # MCMC configuration 
-nchain <- 5
+nchain <- 10
 n.iter <- 15000
 burnin <- 2000
 
@@ -79,8 +79,13 @@ jags.out <- coda.samples(model = j.model,
 print("Done! Saving output...")
 model.samples <- as.matrix(jags.out)
 input.data <- data.dt
-save(forecast.start.date, states, params, input.data,
-     file = "aux.model.data.RData")
-save(model.samples, file="model.output.RData")
+
+fname <- "Rdata/aux.model.data.RData"
+save(forecast.start.date, states, params, input.data,file = fname)
+sprintf("File %s successfully saved = %s",fname, as.character(basename(fname) %in% dir("Rdata")))
+
+fname <- "Rdata/model.output.RData"
+save(model.samples, file=fname)
+sprintf("File %s successfully saved = %s",fname, as.character(basename(fname) %in% dir("Rdata")))
 print("Done!")
 

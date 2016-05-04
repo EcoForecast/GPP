@@ -16,7 +16,7 @@ load("flux-download/flux.processed.RData")
 
 # Align data based on dates
 start.date <- as.Date("2000-01-01", tz = "UTC")
-end.date <- as.Date(Sys.Date() + 365)
+end.date <- as.Date(Sys.Date() + 180)
 dates <- seq.Date(start.date, end.date, by="day")
 data.dt <- data.table(date = dates)
 

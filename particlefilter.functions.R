@@ -63,18 +63,23 @@ particlefilter <- function(t, model.keep){
     #model.keep <- model.keep[n.keep,]
 }
 
-plot.particlefilter <- function(t, out.model, out.forecast){
+plot.particlefilter <- function(t, out.model, out.forecast, end.forecast){
     library(data.table)
     library(ggplot2)
-    obs.point <- 1 + t - forecast.rows[1]
+  end.forecast <- as.Date(Sys.time())
+    obs.point <- out.model[,date[1 + t - forecast.rows[1]]]
     out_quants <- cbind(out.model, out.forecast)
-    p4 <- ggplot(out_quants) + aes(x=x) +
-        geom_ribbon(aes(ymin=low.model, ymax=high.model), fill="blue", alpha=0.3) +
-        geom_ribbon(aes(ymin=low.forecast, ymax=high.forecast), fill="red", alpha=0.3) +
-        geom_line(aes(y=med.model), color="black") +
-        geom_line(aes(y=med.forecast), color="darkred") + 
-        geom_vline(xintercept=obs.point, col="black", linetype="dashed")
-    return(p4)
-    
+    p <- ggplot(out_quants) + aes(x=date) +
+      geom_ribbon(aes(ymin=low.model, ymax=high.model), fill="blue", alpha=0.3) +
+      geom_ribbon(aes(ymin=low.forecast, ymax=high.forecast), fill="red", alpha=0.3) +
+      geom_line(aes(y=med.model), size=1.5, color="darkblue") +
+      geom_line(aes(y=med.forecast), size=1.5, color="darkred") + 
+      geom_vline(aes(xintercept=as.numeric(obs.point)), size=1.5, col="black", linetype="dashed")+
+      geom_vline(aes(xintercept=as.numeric(end.forecast)), size=1.5, col="black", linetype="dashed")+
+      labs(y = "GPP", x = "Time")+
+      scale_x_date(date_breaks = "1 months", date_minor_breaks = "1 days", date_labels = "%b %Y") +
+      theme_bw() + theme(text = element_text(size=18)) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylim(-11,16)
+    return(p)
 }   # end loop over time
 
