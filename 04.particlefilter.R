@@ -5,7 +5,6 @@ load("input.data.RData")
 load("aux.model.data.RData")
 source("particlefilter.functions.R")
 
-forecast.start.date <- as.Date("2016-01-01")
 today <- as.Date(Sys.Date())
 forecast.rows <- data.dt[, which(date >= forecast.start.date)]
 today.row <- data.dt[, which(date == today)]
